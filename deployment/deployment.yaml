@@ -24,6 +24,9 @@ spec:
             - -alsologtostderr
             - -v=4
             - 2>&1
+          env:
+          - name: BLACK_OR_WHITE
+            value: black
           volumeMounts:
             - name: webhook-certs
               mountPath: /etc/webhook/certs

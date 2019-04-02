@@ -45,7 +45,7 @@ func main() {
 			glog.Errorf("Failed to listen and serve webhook server: %v", err)
 		}
 	}()
-
+	glog.Info(os.Getenv(envListTypeKey))
 	glog.Info("Server started")
 
 	// listening OS shutdown singal

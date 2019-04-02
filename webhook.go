@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/golang/glog"
@@ -35,6 +36,11 @@ var (
 const (
 	admissionWebhookAnnotationMutateKey   = "lxcfs-webhook.paradeum.com/mutate"
 	admissionWebhookAnnotationStatusKey   = "lxcfs-webhook.paradeum.com/status"
+
+	envListTypeKey = "BLACK_OR_WHITE"
+
+	blackList = "BLACK"
+	whiteList = "WHITE"
 
 	NA = "not_available"
 )
@@ -78,18 +84,28 @@ func admissionRequired(ignoredList []string, admissionAnnotationKey string, meta
 			return false
 		}
 	}
-
 	annotations := metadata.GetAnnotations()
 	if annotations == nil {
 		annotations = map[string]string{}
 	}
-
 	var required bool
-	switch strings.ToLower(annotations[admissionAnnotationKey]) {
-	default:
-		required = true
-	case "n", "no", "false", "off":
-		required = false
+	//判断黑白名单模式
+	blackOrWhite := os.Getenv(envListTypeKey)
+	if blackOrWhite == blackList {
+		switch strings.ToLower(annotations[admissionAnnotationKey]) {
+		default:
+			required = true
+		case "n", "no", "false", "off":
+			required = false
+		}
+		
+	}else if blackOrWhite == whiteList{
+		switch strings.ToLower(annotations[admissionAnnotationKey]) {
+		default:
+			required = false
+		case "y", "yes", "true", "on":
+			required = true
+		}
 	}
 	return required
 }
@@ -338,7 +354,6 @@ func (whsvr *WebhookServer) serve(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 	} else {
-		fmt.Println(r.URL.Path)
 		admissionResponse = whsvr.mutate(&ar)
 	}
 	admissionReview := v1beta1.AdmissionReview{}
