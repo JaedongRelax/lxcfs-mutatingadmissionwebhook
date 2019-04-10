@@ -91,6 +91,9 @@ func admissionRequired(ignoredList []string, admissionAnnotationKey string, meta
 	var required bool
 	//判断黑白名单模式
 	blackOrWhite := os.Getenv(envListTypeKey)
+	if blackOrWhite == "" {
+		blackOrWhite = blackList
+	}
 	if blackOrWhite == blackList {
 		switch strings.ToLower(annotations[admissionAnnotationKey]) {
 		default:
